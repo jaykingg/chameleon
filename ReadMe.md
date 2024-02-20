@@ -9,7 +9,7 @@
 
 - 요구사항 분석과 요구사항에 대한 처리방식 코멘트내용입니다.
 - Framework & language : SpringBoot & kotlin(java11+)
-- Spec : Spring MVC, Spring Security, Spring JPA
+- Spec : java17, Spring MVC, Spring Security, Spring JPA
 - Database : Mysql@5.7
 - 회원가입
     - 휴대폰 번호와 비밀번호로 가입.

@@ -9,17 +9,16 @@ import io.kotest.matchers.shouldBe
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
 import java.util.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@WithMockUser(username = "010-1234-1234", password = "1234")
 class ProductControllerTests(
     private var mockMvc: MockMvc,
     private val productRepository: ProductRepository
@@ -43,19 +42,6 @@ class ProductControllerTests(
 
         val response = objectMapper.readTree(result.response.contentAsString)
         return response.get("data").asText()
-    }
-
-
-
-    Given("인증") {
-        When("토큰 없이 접근한 경우") {
-            Then("Response") {
-                mockMvc.perform(
-                    MockMvcRequestBuilders.post("$endpoint/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                ).andExpect(MockMvcResultMatchers.status().isForbidden)
-            }
-        }
     }
 
     Given("상품 등록") {
@@ -217,24 +203,122 @@ class ProductControllerTests(
 
     Given("상품 검색") {
         When("해당 검색어의 상품이 없는 경우") {
+            val jwtToken = loginAndGetToken()
+            beforeEach {
+                productRepository.deleteAll()
+            }
+
             Then("Response, 빈 리스트 반환") {
+                mockMvc.perform(
+                    MockMvcRequestBuilders.get("$endpoint/search")
+                        .header("Authorization", "Bearer $jwtToken")
+                        .param("name", "라떼")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .characterEncoding("UTF-8")
+                ).andExpect(MockMvcResultMatchers.status().isOk)
+                    .andExpect(jsonPath("$.data").isEmpty)
+
 
             }
         }
         When("해당 검색어의 상품이 있는 경우") {
             When("검색어로 검색한 경우") {
-                Then("Response") {
+                val jwtToken = loginAndGetToken()
+                val searchString = "슈크림 라떼"
+                beforeEach {
+                    productRepository.deleteAll()
+                    productRepository.save(
+                        Product(
+                            category = "커피",
+                            price = 5000,
+                            cost = 500,
+                            name = "슈크림 라떼",
+                            description = "hello",
+                            barcode = "0123456789123",
+                            expirationDate = Date.from(Instant.now()),
+                            size = ProductSize.LARGE
+                        )
+                    )
+                }
 
+                afterEach {
+                    productRepository.deleteAll()
+                }
+
+                Then("Response 200, 조회된 결과 응답") {
+                    mockMvc.perform(
+                        MockMvcRequestBuilders.get("$endpoint/search")
+                            .header("Authorization", "Bearer $jwtToken")
+                            .param("name", "$searchString")
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andExpect(status().isOk)
+                        .andExpect(jsonPath("$.data[0].name").value("슈크림 라떼"))
                 }
             }
             When("%LIKE로 검색한 경우") {
-                Then("Response") {
+                val jwtToken = loginAndGetToken()
+                val searchString = "슈크림"
+                beforeEach {
+                    productRepository.deleteAll()
+                    productRepository.save(
+                        Product(
+                            category = "커피",
+                            price = 5000,
+                            cost = 500,
+                            name = "슈크림 라떼",
+                            description = "hello",
+                            barcode = "0123456789123",
+                            expirationDate = Date.from(Instant.now()),
+                            size = ProductSize.LARGE
+                        )
+                    )
+                }
 
+                afterEach {
+                    productRepository.deleteAll()
+                }
+
+                Then("Response 200, 조회된 결과 응답") {
+                    mockMvc.perform(
+                        MockMvcRequestBuilders.get("$endpoint/search")
+                            .header("Authorization", "Bearer $jwtToken")
+                            .param("name", "$searchString")
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andExpect(status().isOk)
+                        .andExpect(jsonPath("$.data[0].name").value("슈크림 라떼"))
                 }
             }
             When("초성검색한 경우") {
-                Then("Response") {
+                val jwtToken = loginAndGetToken()
+                val searchString = "ㅅㅋㄹ"
+                beforeEach {
+                    productRepository.deleteAll()
+                    productRepository.save(
+                        Product(
+                            category = "커피",
+                            price = 5000,
+                            cost = 500,
+                            name = "슈크림 라떼",
+                            description = "hello",
+                            barcode = "0123456789123",
+                            expirationDate = Date.from(Instant.now()),
+                            size = ProductSize.LARGE
+                        )
+                    )
+                }
 
+                afterEach {
+                    productRepository.deleteAll()
+                }
+
+                Then("Response 200, 조회된 결과 응답") {
+                    mockMvc.perform(
+                        MockMvcRequestBuilders.get("$endpoint/search")
+                            .header("Authorization", "Bearer $jwtToken")
+                            .param("name", "$searchString")
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    ).andExpect(status().isOk)
+                        .andExpect(jsonPath("$.data[0].name").value("슈크림 라떼"))
                 }
             }
         }

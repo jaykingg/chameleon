@@ -32,6 +32,7 @@ class SecurityConfig(
         http.csrf().disable()
             .authorizeRequests()
             .requestMatchers("/api/auth/login", "/api/users/register").permitAll()
+            .requestMatchers("/api/products/**").authenticated()
             .anyRequest().authenticated()
             .and()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)

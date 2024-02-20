@@ -55,6 +55,35 @@ class ProductService(private val productRepository: ProductRepository) {
     }
 
     @Transactional(readOnly = true)
-    fun searchProducts(name: String): List<Product> = productRepository.searchByName(name)
+    fun searchProducts(name: String): List<Product> {
+        val initialConsonantString = convertToRegexPattern(name)
+        return productRepository.searchByInitialConsonants(initialConsonantString)
+    }
+
+    private fun convertToRegexPattern(initialConsonant: String): String {
+        val consonantMap = mapOf(
+            'ㄱ' to "[가-깋]",
+            'ㄴ' to "[나-닣]",
+            'ㄷ' to "[다-딯]",
+            'ㄹ' to "[라-맇]",
+            'ㅁ' to "[마-밓]",
+            'ㅂ' to "[바-빗]",
+            'ㅅ' to "[사-싷]",
+            'ㅇ' to "[아-잏]",
+            'ㅈ' to "[자-짛]",
+            'ㅊ' to "[차-칳]",
+            'ㅋ' to "[카-킿]",
+            'ㅌ' to "[타-팋]",
+            'ㅍ' to "[파-핗]",
+            'ㅎ' to "[하-힣]"
+        )
+
+        val uppercaseInput = initialConsonant.toUpperCase()
+        val regexBuilder = StringBuilder()
+        uppercaseInput.forEach {
+            regexBuilder.append(consonantMap[it] ?: it)
+        }
+        return regexBuilder.toString()
+    }
 }
 
