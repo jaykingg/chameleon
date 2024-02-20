@@ -1,0 +1,7 @@
+version: '3'
+services:
+  chameleon:
+    image: chameleon
+    ports:
+      - "8080:8080"
+
